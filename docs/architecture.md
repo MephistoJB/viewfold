@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for Viewfold 0.1.0 on 2026-09-19.
+Accepted for Viewfold 0.2.0 on 2026-09-19.
 
 ## Context
 
@@ -26,9 +26,10 @@ Viewfold decorates three already registered custom-element classes:
 
 1. `home-dashboard-strategy.generate()` is called first. Viewfold inserts one subview whose strategy remains `climate`, plus a private mode marker.
 2. `home-overview-view-strategy.generate()` is called first. Viewfold adds a native `shortcut` card for Covers in the native summary containers and removes the Climate summary only when no native climate entity remains.
-3. `climate-view-strategy.generate()` is called first. Normal Climate output drops visual shading covers. Covers-mode output keeps only those covers.
+3. `climate-view-strategy.generate()` is called first. Normal Climate output drops every cover entity. Covers-mode output keeps every cover supplied by Climate.
+4. `security-view-strategy.generate()` is called in Covers mode and filtered to cover entities. Its native groups are merged with Climate output and duplicate entities are removed. The Security strategy itself is never patched.
 
-The Covers view intentionally invokes the captured original Climate generator. That preserves Home Assistant’s area/floor hierarchy, tile generation, names, features, themes, responsiveness, and future enhancements.
+The Covers view intentionally invokes the captured original Climate and Security generators. Together they cover Home Assistant’s complete cover device-class surface while preserving native area/floor hierarchy, tile generation, names, features, themes, responsiveness, and future enhancements.
 
 The Covers summary uses the native `shortcut` card rather than `home-summary`. The latter accepts a closed upstream summary enum and reads private icon, color, filter, state, and localization maps; extending it would require replacing or patching the card implementation. A shortcut is already a native Home Dashboard card, needs no fake entity, and keeps the interception surface smaller.
 
@@ -48,7 +49,7 @@ Use the installed frontend as the implementation and apply small immutable trans
 
 ### Consequences
 
-Viewfold inherits native UI improvements without synchronizing a fork. It also depends on three internal element names, their static `generate()` entry points, and small structural invariants in their returned configurations. Those dependencies are isolated in `src/native` and `src/transform`.
+Viewfold inherits native UI improvements without synchronizing a fork. It also depends on four internal element names, their static `generate()` entry points, and small structural invariants in their returned configurations. Those dependencies are isolated in `src/native` and `src/transform`.
 
 ## Compatibility controls
 
@@ -65,13 +66,13 @@ The interception is reversible in concept: restoring the symbol-captured generat
 
 ## Classification policy
 
-Version 1 uses a small set-based classifier:
+Version 0.2 uses a domain-based classifier:
 
-- Covers: `awning`, `blind`, `curtain`, `shade`, `shutter`.
-- Climate remains native for `window`, generic/no class, window binary sensors, and actual climate domains.
-- Door, garage, and gate covers are never moved into Covers and remain under native Security behavior.
+- Covers contains every enabled, visible primary entity in the `cover` domain, regardless of device class.
+- Climate retains actual climate domains, area temperature/humidity sensors, and window binary sensors, but no cover entities.
+- Door, garage, gate, and window covers remain in native Security as well; Viewfold adds them to Covers without patching or subtracting from Security.
 
-The classifier reads the effective device class from current state attributes, matching the native frontend filter. Registry visibility and entity category are honored. Centralizing this policy allows future options without spreading Home Assistant-specific rules through the adapter.
+Registry visibility and entity category are honored. Climate output supplies visual, window, and generic covers; Security output supplies door, garage, gate, and window covers. Viewfold merges those native results by floor and area heading and deduplicates entity IDs.
 
 ## Security and privacy
 

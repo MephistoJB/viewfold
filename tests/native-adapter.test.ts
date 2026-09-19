@@ -38,10 +38,15 @@ describe("native strategy adapters", () => {
         },
       ],
     }));
+    const securityGenerate = vi.fn(() => ({
+      type: "sections",
+      sections: [],
+    }));
     const registry: Record<string, StrategyConstructor> = {
       "home-dashboard-strategy": { generate: dashboardGenerate },
       "home-overview-view-strategy": { generate: overviewGenerate },
       "climate-view-strategy": { generate: climateGenerate },
+      "security-view-strategy": { generate: securityGenerate },
     };
     Object.defineProperty(globalThis, "customElements", {
       value: {
@@ -64,6 +69,13 @@ describe("native strategy adapters", () => {
     expect(first.views).toHaveLength(2);
     expect(second.views).toHaveLength(2);
     expect(dashboardGenerate).toHaveBeenCalledTimes(2);
+
+    const covers = await registry["climate-view-strategy"]?.generate(
+      { viewfold_mode: "covers" },
+      hass,
+    );
+    expect(covers?.sections).toHaveLength(1);
+    expect(securityGenerate).toHaveBeenCalledTimes(1);
 
     const nativeUnexpected = { type: "future-layout", payload: 1 };
     climateGenerate.mockReturnValueOnce(nativeUnexpected);

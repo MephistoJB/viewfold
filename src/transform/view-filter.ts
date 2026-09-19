@@ -4,7 +4,7 @@ import type {
   SectionConfig,
   UnknownRecord,
 } from "../types";
-import { isVisualCover } from "./classifier";
+import { isCoverEntity } from "./classifier";
 
 export class IncompatibleViewError extends Error {}
 
@@ -77,8 +77,8 @@ export const filterClimateView = (
 
   const keepEntity =
     mode === "covers"
-      ? (entityId: string) => isVisualCover(hass, entityId)
-      : (entityId: string) => !isVisualCover(hass, entityId);
+      ? (entityId: string) => isCoverEntity(hass, entityId)
+      : (entityId: string) => !isCoverEntity(hass, entityId);
 
   const sections = view.sections.map((section) => {
     if (!isRecord(section)) {
@@ -88,4 +88,110 @@ export const filterClimateView = (
   });
 
   return { ...view, sections: sections.filter(Boolean) };
+};
+
+interface CardGroup {
+  heading?: CardConfig;
+  cards: CardConfig[];
+}
+
+const splitCardGroups = (cards: CardConfig[]): CardGroup[] => {
+  const groups: CardGroup[] = [{ cards: [] }];
+  for (const card of cards.slice(1)) {
+    if (card.type === "heading") {
+      groups.push({ heading: card, cards: [] });
+    } else {
+      groups[groups.length - 1]?.cards.push(card);
+    }
+  }
+  return groups;
+};
+
+const groupKey = (group: CardGroup): string =>
+  group.heading && typeof group.heading.heading === "string"
+    ? `heading:${group.heading.heading}`
+    : "root";
+
+const rebuildCards = (
+  firstHeading: CardConfig,
+  groups: CardGroup[],
+): CardConfig[] => [
+  firstHeading,
+  ...groups.flatMap((group) => [
+    ...(group.heading ? [group.heading] : []),
+    ...group.cards,
+  ]),
+];
+
+export const mergeCoverViews = (
+  primary: UnknownRecord,
+  secondary: UnknownRecord,
+): UnknownRecord => {
+  if (!Array.isArray(primary.sections) || !Array.isArray(secondary.sections)) {
+    throw new IncompatibleViewError("native cover sources have no sections");
+  }
+
+  const merged = (primary.sections as SectionConfig[]).map((section) => ({
+    ...section,
+    cards: [...validateCards(section.cards)],
+  }));
+  const seen = new Set(
+    merged.flatMap((section) =>
+      section.cards.flatMap((card) =>
+        typeof card.entity === "string" ? [card.entity] : [],
+      ),
+    ),
+  );
+
+  for (const sourceSection of secondary.sections as SectionConfig[]) {
+    const sourceCards = validateCards(sourceSection.cards);
+    const firstHeading = sourceCards[0];
+    if (firstHeading?.type !== "heading") {
+      throw new IncompatibleViewError("native section has no leading heading");
+    }
+    const sourceGroups = splitCardGroups(sourceCards)
+      .map((group) => ({
+        ...group,
+        cards: group.cards.filter((card) => {
+          if (typeof card.entity !== "string" || seen.has(card.entity)) {
+            return false;
+          }
+          seen.add(card.entity);
+          return true;
+        }),
+      }))
+      .filter((group) => group.cards.length > 0);
+    if (sourceGroups.length === 0) continue;
+
+    const target = merged.find((section) => {
+      const targetFirst = section.cards[0];
+      return (
+        targetFirst?.type === "heading" &&
+        targetFirst.heading === firstHeading.heading
+      );
+    });
+    if (!target) {
+      merged.push({
+        ...sourceSection,
+        cards: rebuildCards(firstHeading, sourceGroups),
+      });
+      continue;
+    }
+
+    const targetFirst = target.cards[0];
+    if (targetFirst?.type !== "heading") {
+      throw new IncompatibleViewError("native section has no leading heading");
+    }
+    const targetGroups = splitCardGroups(target.cards);
+    for (const sourceGroup of sourceGroups) {
+      const existing = targetGroups.find(
+        (group) => groupKey(group) === groupKey(sourceGroup),
+      );
+      if (existing) existing.cards.push(...sourceGroup.cards);
+      else targetGroups.push(sourceGroup);
+    }
+    target.cards = rebuildCards(targetFirst, targetGroups);
+  }
+
+  return { ...primary, sections: merged };
 };

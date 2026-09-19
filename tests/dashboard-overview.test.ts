@@ -108,23 +108,18 @@ describe("Home Dashboard transformations", () => {
     expect(input).toEqual(summaryView());
   });
 
-  it("preserves Climate when true climate or windows remain", () => {
-    for (const state of [
-      entity("climate.room"),
-      entity("cover.window", "window"),
-    ]) {
-      const result = transformHomeOverview(
-        summaryView(),
-        hassFixture([state, entity("cover.shade", "shade")]),
-      );
-      const cards =
-        (result.sections as { cards: CardConfig[] }[])[0]?.cards ?? [];
-      expect(cards.some((card) => card.summary === "climate")).toBe(true);
-      expect(cards.filter((card) => card.label).length).toBe(1);
-    }
+  it("preserves Climate when a true climate entity remains", () => {
+    const result = transformHomeOverview(
+      summaryView(),
+      hassFixture([entity("climate.room"), entity("cover.window", "window")]),
+    );
+    const cards =
+      (result.sections as { cards: CardConfig[] }[])[0]?.cards ?? [];
+    expect(cards.some((card) => card.summary === "climate")).toBe(true);
+    expect(cards.filter((card) => card.label).length).toBe(1);
   });
 
-  it("does not add a Covers summary when no visual covers exist", () => {
+  it("does not add a Covers summary when no covers exist", () => {
     const result = transformHomeOverview(
       summaryView(),
       hassFixture([entity("climate.room")]),

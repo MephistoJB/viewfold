@@ -4,6 +4,14 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-19
+
+### Changed
+
+- Include every visible primary `cover` entity in Covers, regardless of device class.
+- Reuse and merge native Climate and Security strategy output so window, generic, door, garage, and gate covers retain native cards and grouping.
+- Remove every `cover` entity from Climate while leaving non-cover climate entities and window binary sensors unchanged.
+
 ## [0.1.2] - 2026-09-19
 
 ### Fixed
@@ -28,7 +36,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Compatibility validation, one-time warnings, and native fail-safe output.
 - Unit test, lint, formatting, type-check, build, and HACS validation workflows.
 
-[Unreleased]: https://github.com/MephistoJB/viewfold/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/MephistoJB/viewfold/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/MephistoJB/viewfold/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/MephistoJB/viewfold/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/MephistoJB/viewfold/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/MephistoJB/viewfold/releases/tag/v0.1.0

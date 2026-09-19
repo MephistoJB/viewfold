@@ -1,4 +1,3 @@
-import { VISUAL_COVER_DEVICE_CLASSES } from "../config/defaults";
 import type { HomeAssistantLike } from "../types";
 
 const domainOf = (entityId: string): string => entityId.split(".", 1)[0] ?? "";
@@ -19,17 +18,16 @@ export const deviceClassOf = (
   return typeof value === "string" && value.length > 0 ? value : "none";
 };
 
-export const isVisualCover = (
+export const isCoverEntity = (
   hass: HomeAssistantLike,
   entityId: string,
 ): boolean =>
   domainOf(entityId) === "cover" &&
   Boolean(hass.states[entityId]) &&
-  isPrimaryEntity(hass, entityId) &&
-  VISUAL_COVER_DEVICE_CLASSES.has(deviceClassOf(hass, entityId));
+  isPrimaryEntity(hass, entityId);
 
-export const hasVisualCovers = (hass: HomeAssistantLike): boolean =>
-  Object.keys(hass.states).some((entityId) => isVisualCover(hass, entityId));
+export const hasCovers = (hass: HomeAssistantLike): boolean =>
+  Object.keys(hass.states).some((entityId) => isCoverEntity(hass, entityId));
 
 export const hasRemainingClimate = (hass: HomeAssistantLike): boolean => {
   const hasAreaSensor = Object.values(hass.areas).some((area) =>
@@ -49,9 +47,6 @@ export const hasRemainingClimate = (hass: HomeAssistantLike): boolean => {
     }
     if (domain === "binary_sensor") {
       return deviceClassOf(hass, entityId) === "window";
-    }
-    if (domain === "cover") {
-      return ["window", "none"].includes(deviceClassOf(hass, entityId));
     }
     return false;
   });

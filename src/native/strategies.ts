@@ -8,7 +8,7 @@ import type {
 } from "../types";
 import { transformHomeDashboard } from "../transform/dashboard";
 import { transformHomeOverview } from "../transform/overview";
-import { filterClimateView } from "../transform/view-filter";
+import { filterClimateView, mergeCoverViews } from "../transform/view-filter";
 
 const ORIGINAL_DASHBOARD = Symbol.for(
   "viewfold.original.home-dashboard.generate",
@@ -17,11 +17,13 @@ const ORIGINAL_OVERVIEW = Symbol.for(
   "viewfold.original.home-overview.generate",
 );
 const ORIGINAL_CLIMATE = Symbol.for("viewfold.original.climate.generate");
+const ORIGINAL_SECURITY = Symbol.for("viewfold.original.security.generate");
 
 interface NativeStrategies {
   dashboard: StrategyConstructor;
   overview: StrategyConstructor;
   climate: StrategyConstructor;
+  security: StrategyConstructor;
 }
 
 const getStrategy = (tag: string): StrategyConstructor => {
@@ -53,11 +55,13 @@ const waitForStrategies = async (): Promise<NativeStrategies> => {
     customElements.whenDefined("home-dashboard-strategy"),
     customElements.whenDefined("home-overview-view-strategy"),
     customElements.whenDefined("climate-view-strategy"),
+    customElements.whenDefined("security-view-strategy"),
   ]);
   return {
     dashboard: getStrategy("home-dashboard-strategy"),
     overview: getStrategy("home-overview-view-strategy"),
     climate: getStrategy("climate-view-strategy"),
+    security: getStrategy("security-view-strategy"),
   };
 };
 
@@ -92,6 +96,10 @@ export const installStrategyAdapters = async (
     ORIGINAL_OVERVIEW,
   );
   const climateOriginal = captureOriginal(strategies.climate, ORIGINAL_CLIMATE);
+  const securityOriginal = captureOriginal(
+    strategies.security,
+    ORIGINAL_SECURITY,
+  );
 
   if (strategies.dashboard.generate === dashboardOriginal) {
     strategies.dashboard.generate = async function (
@@ -125,6 +133,28 @@ export const installStrategyAdapters = async (
       const generated = await climateOriginal.call(this, config, hass);
       const mode =
         config[COVERS_MODE_KEY] === COVERS_MODE_VALUE ? "covers" : "climate";
+      if (mode === "covers") {
+        try {
+          const securityGenerated = await securityOriginal.call(
+            strategies.security,
+            { type: "security" },
+            hass,
+          );
+          return safelyTransform(logger, "climate-covers", generated, () =>
+            mergeCoverViews(
+              filterClimateView(generated, hass, "covers"),
+              filterClimateView(securityGenerated, hass, "covers"),
+            ),
+          );
+        } catch (error) {
+          logger.warnOnce(
+            "climate-covers",
+            "The installed Home Assistant frontend is not compatible with this adapter; native behavior has been preserved.",
+            error,
+          );
+          return generated;
+        }
+      }
       return safelyTransform(logger, `climate-${mode}`, generated, () =>
         filterClimateView(generated, hass, mode),
       );

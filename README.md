@@ -1,6 +1,6 @@
 # Viewfold
 
-Viewfold gives Home Assistant’s native Home Dashboard a separate **Covers** category for awnings, blinds, curtains, shades, and shutters. Climate keeps its native climate devices, window covers, and window binary sensors. Security remains responsible for doors, garage doors, and gates.
+Viewfold gives Home Assistant’s native Home Dashboard a separate **Covers** category for every cover entity. Climate keeps its non-cover climate devices and window binary sensors. Door, garage, gate, and window covers also retain Home Assistant’s native Security behavior.
 
 Viewfold is deliberately a thin adapter. It calls the dashboard strategies shipped with the installed Home Assistant frontend, then applies small immutable filters to their generated configuration. It does not fork or reproduce the Home Dashboard.
 
@@ -10,8 +10,9 @@ Viewfold is deliberately a thin adapter. It calls the dashboard strategies shipp
 
 - Adds a native-looking Covers summary and `/home/covers` subview.
 - Reuses Home Assistant’s native tile cards, area and floor grouping, entity names, controls, themes, and responsive sections.
-- Moves only `cover` entities whose effective device class is `awning`, `blind`, `curtain`, `shade`, or `shutter`.
-- Leaves `window`, generic covers, window binary sensors, and security-related covers under native Home Assistant rules.
+- Includes every visible primary `cover` entity, including generic covers and the `awning`, `blind`, `curtain`, `door`, `garage`, `gate`, `shade`, `shutter`, and `window` device classes.
+- Removes all cover entities from Climate while leaving window binary sensors and actual climate domains unchanged.
+- Leaves Security itself untouched, so security-related covers remain available there as well as in Covers.
 - Discovers newly added compatible covers from Home Assistant state and registry data; no entity list is required.
 - Provides English, German, and French fallback translations while preferring Home Assistant’s own Covers translation.
 - Performs no telemetry, analytics, remote loading, or outbound runtime requests.
@@ -54,8 +55,9 @@ At runtime Viewfold waits for and decorates these registered native strategy cla
 - `home-dashboard-strategy`
 - `home-overview-view-strategy`
 - `climate-view-strategy`
+- `security-view-strategy`
 
-The original `generate()` functions remain the authoritative source. Viewfold stores them exactly once, calls them first, and filters the returned configuration without mutating it. The Covers view itself calls the captured original Climate generator and retains only visual shading covers. See [Architecture](docs/architecture.md) for the design record and compatibility boundaries.
+The original `generate()` functions remain the authoritative source. Viewfold stores them exactly once and calls them first. The Covers view filters and merges the original Climate and Security output without mutating it, retaining native cards and grouping while covering the complete `cover` domain. See [Architecture](docs/architecture.md) for the design record and compatibility boundaries.
 
 ## Internationalization
 
@@ -79,8 +81,8 @@ Known limitation: if Home Assistant itself produces a non-sections Home overview
 
 - **Nothing changed:** confirm that Viewfold is both installed and added as an integration, then restart Home Assistant and hard-refresh the browser.
 - **One compatibility warning appears:** Home Assistant’s frontend structure may have changed. Native output remains active; include the Home Assistant frontend version and warning text in a Viewfold issue.
-- **A cover stays in Climate:** inspect its effective `device_class`. Only the five visual shading classes listed above move by default.
-- **A garage door or gate is not in Covers:** this is intentional; security-related covers remain governed by Home Assistant’s Security classification.
+- **A cover is missing from Covers:** confirm that the entity is enabled, visible, has no entity category, and appears in either Home Assistant’s native Climate or Security view.
+- **A garage door or gate also appears in Security:** this is intentional; Viewfold does not remove native Security behavior.
 
 ## Development
 

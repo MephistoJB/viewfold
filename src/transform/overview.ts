@@ -6,7 +6,7 @@ import type {
   SectionConfig,
   UnknownRecord,
 } from "../types";
-import { hasRemainingClimate, hasVisualCovers } from "./classifier";
+import { hasCovers, hasRemainingClimate } from "./classifier";
 import { IncompatibleViewError } from "./view-filter";
 
 const isRecord = (value: unknown): value is UnknownRecord =>
@@ -45,8 +45,7 @@ const transformCards = (
         !keepClimate
       ),
   );
-  if (!hasVisualCovers(hass) || filtered.some(isCoversShortcut))
-    return filtered;
+  if (!hasCovers(hass) || filtered.some(isCoversShortcut)) return filtered;
 
   const columns = filtered.find(
     (card) => isRecord(card.grid_options) && card.grid_options.columns,
@@ -103,7 +102,7 @@ export const transformHomeOverview = (
   hass: HomeAssistantLike,
 ): UnknownRecord => {
   if (view.type !== "sections" || !Array.isArray(view.sections)) {
-    if (hasVisualCovers(hass)) {
+    if (hasCovers(hass)) {
       throw new IncompatibleViewError(
         "native home overview is not a sections view",
       );
