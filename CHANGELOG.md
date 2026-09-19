@@ -4,6 +4,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-19
+
+### Fixed
+
+- Register each native strategy adapter independently so direct Climate or Home subview loads cannot be blocked by strategy elements that Home Assistant has not loaded yet.
+
 ## [0.2.0] - 2026-09-19
 
 ### Changed
@@ -36,7 +42,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Compatibility validation, one-time warnings, and native fail-safe output.
 - Unit test, lint, formatting, type-check, build, and HACS validation workflows.
 
-[Unreleased]: https://github.com/MephistoJB/viewfold/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/MephistoJB/viewfold/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/MephistoJB/viewfold/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/MephistoJB/viewfold/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/MephistoJB/viewfold/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/MephistoJB/viewfold/compare/v0.1.0...v0.1.1

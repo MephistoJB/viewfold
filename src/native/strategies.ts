@@ -19,13 +19,6 @@ const ORIGINAL_OVERVIEW = Symbol.for(
 const ORIGINAL_CLIMATE = Symbol.for("viewfold.original.climate.generate");
 const ORIGINAL_SECURITY = Symbol.for("viewfold.original.security.generate");
 
-interface NativeStrategies {
-  dashboard: StrategyConstructor;
-  overview: StrategyConstructor;
-  climate: StrategyConstructor;
-  security: StrategyConstructor;
-}
-
 const getStrategy = (tag: string): StrategyConstructor => {
   const strategy = customElements.get(tag) as StrategyConstructor | undefined;
   if (!strategy || typeof strategy.generate !== "function") {
@@ -50,21 +43,6 @@ const captureOriginal = (
   return original;
 };
 
-const waitForStrategies = async (): Promise<NativeStrategies> => {
-  await Promise.all([
-    customElements.whenDefined("home-dashboard-strategy"),
-    customElements.whenDefined("home-overview-view-strategy"),
-    customElements.whenDefined("climate-view-strategy"),
-    customElements.whenDefined("security-view-strategy"),
-  ]);
-  return {
-    dashboard: getStrategy("home-dashboard-strategy"),
-    overview: getStrategy("home-overview-view-strategy"),
-    climate: getStrategy("climate-view-strategy"),
-    security: getStrategy("security-view-strategy"),
-  };
-};
-
 const safelyTransform = (
   logger: Logger,
   key: string,
@@ -83,60 +61,81 @@ const safelyTransform = (
   }
 };
 
-export const installStrategyAdapters = async (
-  logger: Logger,
-): Promise<void> => {
-  const strategies = await waitForStrategies();
-  const dashboardOriginal = captureOriginal(
-    strategies.dashboard,
-    ORIGINAL_DASHBOARD,
-  );
-  const overviewOriginal = captureOriginal(
-    strategies.overview,
-    ORIGINAL_OVERVIEW,
-  );
-  const climateOriginal = captureOriginal(strategies.climate, ORIGINAL_CLIMATE);
-  const securityOriginal = captureOriginal(
-    strategies.security,
-    ORIGINAL_SECURITY,
-  );
+export const installStrategyAdapters = (logger: Logger): Promise<void> => {
+  const register = (
+    tag: string,
+    install: (strategy: StrategyConstructor) => void,
+  ): void => {
+    const current = customElements.get(tag) as StrategyConstructor | undefined;
+    if (current) {
+      install(current);
+      return;
+    }
+    void customElements
+      .whenDefined(tag)
+      .then(() => {
+        install(getStrategy(tag));
+      })
+      .catch((error: unknown) => {
+        logger.error(`Failed to register the ${tag} adapter`, error);
+      });
+  };
 
-  if (strategies.dashboard.generate === dashboardOriginal) {
-    strategies.dashboard.generate = async function (
+  register("home-dashboard-strategy", (dashboard) => {
+    const original = captureOriginal(dashboard, ORIGINAL_DASHBOARD);
+    if (dashboard.generate !== original) return;
+    dashboard.generate = async function (
       config: UnknownRecord,
       hass: HomeAssistantLike,
     ) {
-      const generated = await dashboardOriginal.call(this, config, hass);
+      const generated = await original.call(this, config, hass);
       return safelyTransform(logger, "dashboard", generated, () =>
         transformHomeDashboard(generated, hass),
       );
     };
-  }
+  });
 
-  if (strategies.overview.generate === overviewOriginal) {
-    strategies.overview.generate = async function (
+  register("home-overview-view-strategy", (overview) => {
+    const original = captureOriginal(overview, ORIGINAL_OVERVIEW);
+    if (overview.generate !== original) return;
+    overview.generate = async function (
       config: UnknownRecord,
       hass: HomeAssistantLike,
     ) {
-      const generated = await overviewOriginal.call(this, config, hass);
+      const generated = await original.call(this, config, hass);
       return safelyTransform(logger, "overview", generated, () =>
         transformHomeOverview(generated, hass),
       );
     };
-  }
+  });
 
-  if (strategies.climate.generate === climateOriginal) {
-    strategies.climate.generate = async function (
+  register("security-view-strategy", (security) => {
+    captureOriginal(security, ORIGINAL_SECURITY);
+  });
+
+  register("climate-view-strategy", (climate) => {
+    const original = captureOriginal(climate, ORIGINAL_CLIMATE);
+    if (climate.generate !== original) return;
+    climate.generate = async function (
       config: UnknownRecord,
       hass: HomeAssistantLike,
     ) {
-      const generated = await climateOriginal.call(this, config, hass);
+      const generated = await original.call(this, config, hass);
       const mode =
         config[COVERS_MODE_KEY] === COVERS_MODE_VALUE ? "covers" : "climate";
       if (mode === "covers") {
         try {
-          const securityGenerated = await securityOriginal.call(
-            strategies.security,
+          const security = customElements.get("security-view-strategy") as
+            StrategyConstructor | undefined;
+          const securityOriginal = security?.[ORIGINAL_SECURITY];
+          if (!security || typeof securityOriginal !== "function") {
+            return safelyTransform(logger, "climate-covers", generated, () =>
+              filterClimateView(generated, hass, "covers"),
+            );
+          }
+          const generateSecurity = securityOriginal as StrategyGenerate;
+          const securityGenerated = await generateSecurity.call(
+            security,
             { type: "security" },
             hass,
           );
@@ -159,7 +158,8 @@ export const installStrategyAdapters = async (
         filterClimateView(generated, hass, mode),
       );
     };
-  }
+  });
 
   logger.debug("Native Home Dashboard strategy adapters installed");
+  return Promise.resolve();
 };

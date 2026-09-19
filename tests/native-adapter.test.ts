@@ -21,6 +21,48 @@ afterEach(() => {
 });
 
 describe("native strategy adapters", () => {
+  it("patches available strategies without waiting for missing ones", async () => {
+    const climateGenerate = vi.fn(() => ({
+      type: "sections",
+      sections: [
+        {
+          cards: [
+            { type: "heading", heading: "Area" },
+            { type: "tile", entity: "climate.room" },
+            { type: "tile", entity: "cover.generic" },
+          ],
+        },
+      ],
+    }));
+    const climate: StrategyConstructor = { generate: climateGenerate };
+    const never = new Promise<void>(() => undefined);
+    Object.defineProperty(globalThis, "customElements", {
+      value: {
+        whenDefined: vi.fn((tag: string) =>
+          tag === "climate-view-strategy" ? Promise.resolve() : never,
+        ),
+        get: vi.fn((tag: string) =>
+          tag === "climate-view-strategy" ? climate : undefined,
+        ),
+      },
+      configurable: true,
+    });
+
+    await expect(installStrategyAdapters(logger)).resolves.toBeUndefined();
+    const result = await climate.generate(
+      {},
+      hassFixture([
+        entity("climate.room", undefined, "heat"),
+        entity("cover.generic"),
+      ]),
+    );
+    const cards = (result.sections as { cards: { entity?: string }[] }[])[0]
+      ?.cards;
+    expect(cards?.map((card) => card.entity).filter(Boolean)).toEqual([
+      "climate.room",
+    ]);
+  });
+
   it("patches once, regenerates safely, and falls back to native output", async () => {
     const dashboardGenerate = vi.fn(() => ({ views: [{ path: "overview" }] }));
     const overviewGenerate = vi.fn(() => ({

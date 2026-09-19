@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for Viewfold 0.2.0 on 2026-09-19.
+Accepted for Viewfold 0.2.1 on 2026-09-19.
 
 ## Context
 
@@ -53,7 +53,7 @@ Viewfold inherits native UI improvements without synchronizing a fork. It also d
 
 ## Compatibility controls
 
-- `customElements.whenDefined()` provides an explicit registration lifecycle; there is no polling, MutationObserver, arbitrary delay, or DOM traversal.
+- Already defined strategies are patched synchronously; `customElements.whenDefined()` independently patches each strategy that Home Assistant lazy-loads later. A missing strategy never blocks the others, and there is no polling, MutationObserver, arbitrary delay, or DOM traversal.
 - `Symbol.for()` markers capture each original generator exactly once and make loading idempotent.
 - Wrappers always await the native generator before applying any change.
 - Transformations use object/array copies and preserve unknown fields.
