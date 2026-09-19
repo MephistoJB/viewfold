@@ -40,7 +40,7 @@ No Lovelace resource needs to be added. The integration registers its bundled mo
 ## Manual installation
 
 1. Download `viewfold.zip` from the latest release.
-2. Extract `custom_components/viewfold` into the Home Assistant configuration directory’s `custom_components` folder.
+2. Create `custom_components/viewfold` in the Home Assistant configuration directory and extract the archive into that folder.
 3. Restart Home Assistant and add the Viewfold integration under **Settings → Devices & services**.
 
 ## Configuration

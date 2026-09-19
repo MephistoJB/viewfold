@@ -30,7 +30,7 @@ jobs:
         run: npm run check
 
       - name: Create HACS archive
-        run: zip -r viewfold.zip custom_components/viewfold
+        run: (cd custom_components/viewfold && zip -r ../../../viewfold.zip .)
 
       - name: Publish GitHub release
         env:

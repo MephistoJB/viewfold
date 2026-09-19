@@ -4,6 +4,12 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-19
+
+### Fixed
+
+- Package release archives with the integration files at the archive root, as required for HACS integration downloads.
+
 ## [0.1.0] - 2026-09-19
 
 ### Added
@@ -16,5 +22,6 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Compatibility validation, one-time warnings, and native fail-safe output.
 - Unit test, lint, formatting, type-check, build, and HACS validation workflows.
 
-[Unreleased]: https://github.com/MephistoJB/viewfold/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/MephistoJB/viewfold/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/MephistoJB/viewfold/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/MephistoJB/viewfold/releases/tag/v0.1.0
