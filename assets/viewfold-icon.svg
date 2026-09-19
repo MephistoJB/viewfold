@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Viewfold abstract folded panels</title>
+  <rect width="512" height="512" rx="112" fill="#243447"/>
+  <path d="M104 120h128v272H104z" fill="#f4b942"/>
+  <path d="M232 120l88 44v228l-88-44z" fill="#eb6f5a"/>
+  <path d="M320 164l88-44v272h-88z" fill="#63c7b2"/>
+</svg>

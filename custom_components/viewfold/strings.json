@@ -1,0 +1,27 @@
+{
+  "title": "Viewfold",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Viewfold",
+        "description": "Add a separate Covers view to the native Home Dashboard."
+      }
+    },
+    "abort": {
+      "already_configured": "Viewfold is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Viewfold options",
+        "data": {
+          "debug": "Enable debug logging"
+        },
+        "data_description": {
+          "debug": "Write additional adapter diagnostics to the browser console."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+name: Bug report
+description: Report reproducible Viewfold behavior or a compatibility fallback.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve Viewfold. Remove private entity names or data before submitting.
+  - type: input
+    id: viewfold-version
+    attributes:
+      label: Viewfold version
+    validations:
+      required: true
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant version
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Client
+      options:
+        - Chrome or Chromium
+        - Firefox
+        - Safari
+        - Home Assistant companion app
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include the expected result, actual result, and device classes involved.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant browser warning
+      description: Paste only the Viewfold warning and remove private data.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I tested after a Home Assistant restart and browser hard refresh.
+          required: true
+        - label: I removed secrets and private entity data.
+          required: true

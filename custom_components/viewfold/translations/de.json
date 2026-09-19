@@ -1,0 +1,25 @@
+{
+  "title": "Viewfold",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Viewfold einrichten",
+        "description": "Fügt dem nativen Home-Dashboard eine eigene Ansicht für Rollläden und Beschattung hinzu."
+      }
+    },
+    "abort": {
+      "already_configured": "Viewfold ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Viewfold-Optionen",
+        "data": { "debug": "Debug-Protokollierung aktivieren" },
+        "data_description": {
+          "debug": "Schreibt zusätzliche Adapter-Diagnosen in die Browserkonsole."
+        }
+      }
+    }
+  }
+}

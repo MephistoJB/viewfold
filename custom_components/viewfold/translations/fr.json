@@ -1,0 +1,25 @@
+{
+  "title": "Viewfold",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurer Viewfold",
+        "description": "Ajoute une vue distincte pour les volets et protections solaires au tableau de bord Maison natif."
+      }
+    },
+    "abort": {
+      "already_configured": "Viewfold est déjà configuré."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options de Viewfold",
+        "data": { "debug": "Activer la journalisation de débogage" },
+        "data_description": {
+          "debug": "Écrit des diagnostics supplémentaires de l’adaptateur dans la console du navigateur."
+        }
+      }
+    }
+  }
+}
